@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AcademicSource {
+  OPENALEX
+  CROSSREF
+  SEMANTIC_SCHOLAR
+  ARXIV
+}
+
+enum ArticleType {
+  JOURNAL
+  CONFERENCE
+  PREPRINT
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  name          String?
+  createdAt     DateTime      @default(now())
+  topicSearches TopicSearch[]
+}
+
+model TopicSearch {
+  id               String             @id @default(cuid())
+  userId           String?
+  topic            String
+  yearFrom         Int?
+  yearTo           Int?
+  sourceFilter     AcademicSource?
+  openAccessOnly   Boolean            @default(false)
+  articleType      ArticleType?
+  createdAt        DateTime           @default(now())
+  user             User?              @relation(fields: [userId], references: [id])
+  topicSearchPapers TopicSearchPaper[]
+}
+
+model Paper {
+  id              String            @id @default(cuid())
+  externalId      String?
+  title           String
+  doi             String?           @unique
+  source          AcademicSource
+  year            Int
+  abstract        String
+  openAccess      Boolean           @default(false)
+  articleType     ArticleType
+  citationCount   Int               @default(0)
+  credibilityScore Int              @default(0)
+  createdAt       DateTime          @default(now())
+  authors         PaperAuthor[]
+  analyses        PaperAnalysis[]
+  topicLinks      TopicSearchPaper[]
+}
+
+model PaperAuthor {
+  id        String  @id @default(cuid())
+  paperId   String
+  name      String
+  affiliation String?
+  paper     Paper   @relation(fields: [paperId], references: [id], onDelete: Cascade)
+}
+
+model PaperAnalysis {
+  id                String   @id @default(cuid())
+  paperId            String
+  summary            String
+  researchProblem    String
+  method             String
+  dataset            String?
+  findings           String
+  limitations        String
+  noveltyNote        String
+  noveltyScore       Int
+  evidenceStrength   Int
+  createdAt          DateTime @default(now())
+  paper              Paper    @relation(fields: [paperId], references: [id], onDelete: Cascade)
+}
+
+model TopicSearchPaper {
+  id            String      @id @default(cuid())
+  topicSearchId String
+  paperId       String
+  rank          Int?
+  topicSearch   TopicSearch @relation(fields: [topicSearchId], references: [id], onDelete: Cascade)
+  paper         Paper       @relation(fields: [paperId], references: [id], onDelete: Cascade)
+
+  @@unique([topicSearchId, paperId])
+}
+
+model Embedding {
+  id         String   @id @default(cuid())
+  paperId    String
+  model      String
+  vector     Json
+  createdAt  DateTime @default(now())
+}
