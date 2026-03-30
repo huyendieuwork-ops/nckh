@@ -35,3 +35,19 @@ Mở tại: <http://localhost:3000>
 npm run prisma:migrate
 npm run prisma:seed
 ```
+
+## Chạy tự động trên GitHub
+
+Repository đã có sẵn GitHub Actions:
+
+- `CI` (`.github/workflows/ci.yml`): tự chạy `npm ci`, `prisma generate`, `typecheck`, `build` cho push/PR.
+- `Deploy to Vercel` (`.github/workflows/deploy-vercel.yml`): tự deploy production khi push lên `main/master` hoặc chạy thủ công.
+
+### Thiết lập deploy Vercel từ GitHub
+
+1. Kết nối repo với Vercel (import project).
+2. Thêm GitHub Secrets trong repo:
+   - `VERCEL_TOKEN`
+3. Push lên `main` để workflow `Deploy to Vercel` chạy.
+
+Sau deploy, app sẽ chạy trên domain Vercel của bạn (ví dụ: `https://<project>.vercel.app`).
